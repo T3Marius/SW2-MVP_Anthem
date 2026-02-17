@@ -1,0 +1,11 @@
+.vs/
+**/obj
+**/bin
+build/
+swiftlys2/
+*.zip
+*.sln
+
+# Keep exported contract DLLs versioned in repo, even if global ignore rules include *.dll.
+!MVP_Anthem/resources/exports/
+!MVP_Anthem/resources/exports/*.dll

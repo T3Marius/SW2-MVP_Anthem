@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (example: 1.2.3 or v1.2.3)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Resolve Version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            RAW="${{ github.event.inputs.version }}"
+            RAW="${RAW#v}"
+            TAG="v${RAW}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            RAW="${TAG#v}"
+          fi
+
+          if [[ "${RAW}" == *"-"* ]]; then
+            PRERELEASE="true"
+          else
+            PRERELEASE="false"
+          fi
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${RAW}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${PRERELEASE}" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure Tag Exists (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${TAG}" "${GITHUB_SHA}"
+          git push origin "${TAG}"
+
+      - name: Build
+        shell: bash
+        run: |
+          rm -rf build
+
+          SOLUTION=$(find . -maxdepth 2 -type f \( -name "*.slnx" -o -name "*.sln" \) | head -n 1 || true)
+          if [[ -n "${SOLUTION}" ]]; then
+            echo "Using solution: ${SOLUTION}"
+            dotnet restore "${SOLUTION}"
+            dotnet build "${SOLUTION}" -c Release --nologo --no-restore
+            exit 0
+          fi
+
+          PROJECT="MVP_Anthem/MVP_Anthem.csproj"
+          if [[ ! -f "${PROJECT}" ]]; then
+            echo "Could not find project file: ${PROJECT}"
+            exit 1
+          fi
+
+          dotnet restore "${PROJECT}"
+          dotnet build "${PROJECT}" -c Release --nologo --no-restore
+
+      - name: Create Release Archive
+        id: archive
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARCHIVE="MVP_Anthem.v${VERSION}.zip"
+
+          if [[ ! -d "build/plugins/MVP_Anthem" ]]; then
+            echo "Missing build/plugins/MVP_Anthem in build output."
+            exit 1
+          fi
+
+          if [[ ! -d "build/data/MVP_Anthem" ]]; then
+            echo "Missing build/data/MVP_Anthem in build output."
+            exit 1
+          fi
+
+          rm -rf release_bundle
+          mkdir -p release_bundle
+          cp -R build/plugins release_bundle/plugins
+          cp -R build/data release_bundle/data
+
+          (
+            cd release_bundle
+            zip -r "../${ARCHIVE}" plugins data
+          )
+
+          echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Release Notes
+        id: notes
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          PRERELEASE="${{ steps.version.outputs.prerelease }}"
+
+          if [[ "${PRERELEASE}" == "true" ]]; then
+            PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -n 1 || true)
+          else
+            PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | grep -v "^${TAG}$" | head -n 1 || true)
+          fi
+
+          {
+            echo "## Changes in v${VERSION}"
+            echo
+
+            if [[ -n "${PREV_TAG}" ]]; then
+              echo "_Compared to ${PREV_TAG}_"
+              echo
+              RANGE="${PREV_TAG}..${TAG}"
+            else
+              echo "_First release_"
+              echo
+              RANGE="${TAG}"
+            fi
+
+            COMMITS=$(git log "${RANGE}" --pretty=format:'- %s ([`%h`](https://github.com/${{ github.repository }}/commit/%H))')
+            if [[ -z "${COMMITS}" ]]; then
+              echo "- No commit details found for this range."
+            else
+              echo "${COMMITS}"
+            fi
+          } > release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: MVP_Anthem v${{ steps.version.outputs.version }}
+          prerelease: ${{ steps.version.outputs.prerelease == 'true' }}
+          body_path: release_notes.md
+          files: |
+            ${{ steps.archive.outputs.archive }}
