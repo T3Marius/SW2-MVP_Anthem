@@ -70,26 +70,26 @@ The plugin reads from `Main`.
 
 ### Settings (`Main.Settings`)
 
-| Setting | Default | Description |
-| :-- | :-- | :-- |
-| `MVPCommands` | `["mvp"]` | Command aliases that open menu. |
-| `RemovePlayerInGameMvp` | `true` | Clears CS2 native MVP card count for MVP player. |
-| `GiveRandomMVPOnFirstConnect` | `true` | On first connect only, assign a random accessible MVP. |
-| `DefaultVolume` | `0.2` | Default volume stored for first connect (`0.0..1.0`). |
-| `MVPMaxDuration` | `10` | Max total seconds for repeating center HTML MVP message. |
-| `SoundEventFiles` | `[]` | Config field kept for compatibility/manual organization. |
-| `ShakePlayerScreen` | `true` | Config field currently not used by runtime logic. |
+| Setting                       | Default   | Description                                              |
+| :---------------------------- | :-------- | :------------------------------------------------------- |
+| `MVPCommands`                 | `["mvp"]` | Command aliases that open menu.                          |
+| `RemovePlayerInGameMvp`       | `true`    | Clears CS2 native MVP card count for MVP player.         |
+| `GiveRandomMVPOnFirstConnect` | `true`    | On first connect only, assign a random accessible MVP.   |
+| `DefaultVolume`               | `0.2`     | Default volume stored for first connect (`0.0..1.0`).    |
+| `MVPMaxDuration`              | `10`      | Max total seconds for repeating center HTML MVP message. |
+| `SoundEventFiles`             | `[]`      | Config field kept for compatibility/manual organization. |
+| `ShakePlayerScreen`           | `true`    | Config field currently not used by runtime logic.        |
 
 `GiveRandomMVPOnFirstJoin` is an alias property of `GiveRandomMVPOnFirstConnect`.
 
 ### Menu (`Main.Menu`)
 
-| Setting | Default | Description |
-| :-- | :-- | :-- |
-| `FreezePlayer` | `true` | Freeze player while menu is open. |
-| `EnableSounds` | `true` | Enable menu navigation sounds. |
-| `GradientTitleColor` | `true` | Apply gradient menu title with Swiftly helper. |
-| `VolumeOptions` | `[0,10,20,40,60,80,100]` | Volume choices shown in volume submenu. |
+| Setting              | Default                  | Description                                    |
+| :------------------- | :----------------------- | :--------------------------------------------- |
+| `FreezePlayer`       | `true`                   | Freeze player while menu is open.              |
+| `EnableSounds`       | `true`                   | Enable menu navigation sounds.                 |
+| `GradientTitleColor` | `true`                   | Apply gradient menu title with Swiftly helper. |
+| `VolumeOptions`      | `[0,10,20,40,60,80,100]` | Volume choices shown in volume submenu.        |
 
 ### MVP Templates (`Main.MVPs`)
 
@@ -100,14 +100,14 @@ Structure:
 
 Template fields:
 
-| Field | Description |
-| :-- | :-- |
-| `DisplayName` | Translation key for visible MVP name. |
-| `Sound` | Either `.mp3` filename/path or a sound event name. |
-| `EnablePreview` | Shows preview button in MVP actions menu. |
-| `ShowHtml` | Shows center HTML message on round MVP. |
-| `ShowChat` | Shows chat message on round MVP. |
-| `Permissions` | Access list (SteamID64 or permission flags). |
+| Field           | Description                                        |
+| :-------------- | :------------------------------------------------- |
+| `DisplayName`   | Translation key for visible MVP name.              |
+| `Sound`         | Either `.mp3` filename/path or a sound event name. |
+| `EnablePreview` | Shows preview button in MVP actions menu.          |
+| `ShowHtml`      | Shows center HTML message on round MVP.            |
+| `ShowChat`      | Shows chat message on round MVP.                   |
+| `Permissions`   | Access list (SteamID64 or permission flags).       |
 
 ## Sound Types: MP3 vs Sound Event
 
@@ -240,3 +240,13 @@ Archive content:
 - `data/...`
 
 So server owners can extract both folders directly into `addons/swiftlys2/`.
+
+## ☕ Support
+
+<a href="https://buymeacoffee.com/t3marius" target="_blank">
+  <img
+    src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+    alt="Buy Me A Coffee"
+    height="60"
+  />
+</a>
